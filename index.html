@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Your Location</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Share Your Location</h1>
+        <button id="shareLocation">Share My Location</button>
+        <div id="map"></div>
+        <h2>Shared Locations</h2>
+        <ul id="locationList"></ul>
+    </div>
+
+    <script >
+        // Simulating a backend with an array to store locations
+let sharedLocations = [];
+
+// Function to handle sharing the user's location
+function shareLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const { latitude, longitude } = position.coords;
+            const location = { latitude, longitude };
+            
+            // Add the new location to the shared locations list
+            sharedLocations.push(location);
+            
+            // Update the UI to show the shared locations
+            updateLocationList();
+            showMap(location);
+        }, (error) => {
+            alert('Unable to retrieve your location: ' + error.message);
+        });
+    } else {
+        alert('Geolocation is not supported by your browser.');
+    }
+}
+
+// Function to update the list of shared locations
+function updateLocationList() {
+    const locationList = document.getElementById('locationList');
+    locationList.innerHTML = ''; // Clear the list
+
+    sharedLocations.forEach((loc, index) => {
+        const li = document.createElement('li');
+        li.textContent = `Location ${index + 1}: Latitude: ${loc.latitude}, Longitude: ${loc.longitude}`;
+        locationList.appendChild(li);
+    });
+}
+
+// Function to display the location on a map (basic representation)
+function showMap(location) {
+    const map = document.getElementById('map');
+    map.innerHTML = `<iframe
+        width="100%"
+        height="400"
+        frameborder="0" 
+        style="border:0"
+        src="https://www.google.com/maps?q=${location.latitude},${location.longitude}&hl=es;z=14&output=embed">
+    </iframe>`;
+}
+
+// Event listener for the share location button
+document.getElementById('shareLocation').addEventListener('click', shareLocation);
+
+    </script>
+</body>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+.container {
+    text-align: center;
+}
+
+#map {
+    height: 400px;
+    width: 100%;
+    margin-top: 20px;
+    border: 1px solid #ccc;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    padding: 8px;
+    margin: 5px 0;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+}
+
+</style>
+</html>
