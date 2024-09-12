@@ -3,128 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relief and Help Locator</title>
+    <title>Relief Locator with Map</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
 </head>
 <body>
-    <h1>Relief and Help Locator</h1>
-    <div id="map"></div>
-    <button id="shareLocation">Share My Location</button>
-    <button id="viewReliefLocations">View Relief Locations</button>
+    <div class="container">
+        <h1>Relief and Help Locator</h1>
+        <button id="shareLocationBtn">Share My Location</button>
+        <div id="map"></div>
+    </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script>
-        let map;
-let userMarker;
-let reliefMarkers = [];
+        // Relief locations mock data
+const reliefLocations = [
+    { name: 'taunggyi Center 1 phone 09458549137', latitude: 20.773372, longitude: 96.945820, },
+    { name: 'yangon Center 2 phone 09458549137', latitude: 16.855966, longitude: 96.217181, },
+    { name: 'mandalay Center 3 phone 09458549137', latitude: 21.930087, longitude: 96.101893, }
+];
 
-function initMap() {
-    // Initialize the map centered at a default location
-    map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 20.5937, lng: 78.9629 }, // Center of India
-        zoom: 5,
+// Initialize the map
+const map = L.map('map').setView([20.0, 0.0], 2); // Centered on the world
+
+// Add OpenStreetMap tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+
+// Function to show user's location
+function showUserLocation(lat, lng) {
+    L.marker([lat, lng])
+        .addTo(map)
+        .bindPopup('<b>Your Location</b>')
+        .openPopup();
+    map.setView([lat, lng], 10); // Zoom to user's location
+}
+
+// Display relief locations on the map
+function displayReliefLocations() {
+    reliefLocations.forEach(location => {
+        L.marker([location.latitude, location.longitude])
+            .addTo(map)
+            .bindPopup(`<b>${location.name}</b><br>Latitude: ${location.latitude}<br>Longitude: ${location.longitude}`);
     });
 }
 
-// Function to share the user's current location
-document.getElementById('shareLocation').addEventListener('click', () => {
+document.getElementById('shareLocationBtn').addEventListener('click', () => {
     if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const userLocation = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-            };
-
-            // Place a marker at the user's location
-            if (userMarker) {
-                userMarker.setMap(null); // Remove previous marker
-            }
-
-            userMarker = new google.maps.Marker({
-                position: userLocation,
-                map: map,
-                title: 'Your Location',
-                icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png',
-            });
-
-            map.setCenter(userLocation);
-            map.setZoom(14);
-        }, () => {
-            alert('Unable to fetch your location.');
-        });
+        navigator.geolocation.getCurrentPosition(position => {
+            const userLatitude = position.coords.latitude;
+            const userLongitude = position.coords.longitude;
+            showUserLocation(userLatitude, userLongitude);
+            displayReliefLocations();
+        }, handleError);
     } else {
-        alert('Geolocation is not supported by your browser.');
+        alert('Geolocation is not supported by this browser.');
     }
 });
 
-// Function to view relief locations
-document.getElementById('viewReliefLocations').addEventListener('click', () => {
-    // Clear existing relief markers
-    reliefMarkers.forEach(marker => marker.setMap(null));
-    reliefMarkers = [];
-
-    // Example relief locations - Replace with real data from an API or database
-    const reliefLocations = [
-        { name: 'Relief Center 1', lat: 21.1466, lng: 79.0888 },
-        { name: 'Relief Center 2', lat: 19.0760, lng: 72.8777 },
-        { name: 'Relief Center 3', lat: 28.7041, lng: 77.1025 },
-    ];
-
-    // Place markers for each relief location
-    reliefLocations.forEach(location => {
-        const marker = new google.maps.Marker({
-            position: { lat: location.lat, lng: location.lng },
-            map: map,
-            title: location.name,
-            icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-        });
-
-        const infoWindow = new google.maps.InfoWindow({
-            content: `<h3>${location.name}</h3>`,
-        });
-
-        marker.addListener('click', () => {
-            infoWindow.open(map, marker);
-        });
-
-        reliefMarkers.push(marker);
-    });
-
-    // Adjust the map view to fit all relief locations
-    const bounds = new google.maps.LatLngBounds();
-    reliefMarkers.forEach(marker => bounds.extend(marker.getPosition()));
-    map.fitBounds(bounds);
-});
+function handleError(error) {
+    switch (error.code) {
+        case error.PERMISSION_DENIED:
+            alert("User denied the request for Geolocation.");
+            break;
+        case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.");
+            break;
+        case error.TIMEOUT:
+            alert("The request to get user location timed out.");
+            break;
+        case error.UNKNOWN_ERROR:
+            alert("An unknown error occurred.");
+            break;
+    }
+}
 
     </script>
-    <!-- Replace 'YOUR_API_KEY' with your actual Google Maps API key -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=916ea12a98edcf2f3b62e4f574b8bb9687399d93&callback=initMap" async defer></script>
 </body>
 <style>
     body {
     font-family: Arial, sans-serif;
-    text-align: center;
+    background-color: #f0f0f0;
     margin: 0;
     padding: 0;
 }
 
-#map {
-    height: 500px;
-    width: 100%;
-    margin-bottom: 20px;
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
 }
 
 button {
+    display: block;
+    margin: 20px auto;
     padding: 10px 20px;
-    margin: 10px;
+    font-size: 16px;
     cursor: pointer;
-    border: none;
-    background-color: #4CAF50;
-    color: white;
-    border-radius: 5px;
 }
 
-button:hover {
-    background-color: #45a049;
+#map {
+    width: 100%;
+    height: 500px;
+    margin-top: 20px;
+    border-radius: 8px;
 }
 
 </style>
